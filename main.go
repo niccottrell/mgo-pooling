@@ -47,6 +47,7 @@ func GetMongoSession() *mgo.Session {
 				return conn, err
 			}
 		*/
+		dialInfo.PoolLimit = 10
 		log.Println("About to DialWithInfo")
 		session, err := mgo.DialWithInfo(dialInfo)
 		if err != nil {
@@ -59,7 +60,8 @@ func GetMongoSession() *mgo.Session {
 	}
 
 	log.Println("Cloning mgoSession")
-	return mgoSession.Clone()
+	// return mgoSession.Clone()
+	return mgoSession.Copy()
 }
 
 // GetSessionDatabase ...
@@ -81,8 +83,8 @@ func main() {
 	adId := 1
 	for adId < 100 {
 		result := getAdId(123)
-		log.Println("Ad for id=" + string(adId) + "=" + result.name)
-		adId += adId
+		log.Printf("Ad for id %v=%v", adId, result.name)
+		adId += 1
 	}
 	fmt.Println(adId)
 
@@ -100,7 +102,7 @@ func getAdId(id int) Ad {
 
 	err := db.C("ad").Find(bson.M{"ad_id": id}).Select(bson.M{"_id": 0}).One(&result)
 	if err != nil {
-		log.Println("Error doing find")
+		log.Printf("Error doing find for ad_id=%v", id)
 		log.Println(err)
 	}
 	return result
